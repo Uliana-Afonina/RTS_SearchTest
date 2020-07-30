@@ -1,5 +1,3 @@
-package rts.tests;
-
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
@@ -7,7 +5,6 @@ import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.Test;
 import org.tinylog.Logger;
 import rts.pages.SearchPage;
-
 
 import java.io.File;
 import java.io.FileReader;
@@ -19,7 +16,6 @@ import java.util.Properties;
 import static com.codeborne.selenide.Condition.not;
 import static com.codeborne.selenide.Selenide.$;
 import static java.math.BigDecimal.ROUND_DOWN;
-
 
 public class SearchTest {
     SearchPage searchPage = new SearchPage();
@@ -38,10 +34,10 @@ public class SearchTest {
         Logger.info("Установлена начальная цена от 0");
         //проверка исключения (вдруг файл не существует)
 
-        double usd=0.0;
-        double eur=0.0;
+        double usd = 0.0;
+        double eur = 0.0;
         try {
-        File myFile = new File("src/test/java/rts/files/Data.ini");
+            File myFile = new File("src/test/java/rts/files/Data.ini");
             Logger.info("Файл Data.ini успешно открыт.");
 
             //создаем объект Properties и загружаем в него данные из файла.
@@ -56,14 +52,13 @@ public class SearchTest {
             usd = Double.valueOf(USD);
             eur = Double.valueOf(EUR);
 
-
             //устанавливаем диапазон дат публикаций извезений
             searchPage.dateFrom.waitUntil(Condition.visible, 10000, 50).setValue(BEGIN_OF_NOTICE);
             searchPage.dateTo.waitUntil(Condition.visible, 10000, 50).setValue(END_OF_NOTICE);
             Logger.info("Даты начала и конца извещения извлечены из файла Data.ini");
 
-        }
-        catch (IOException e) { Logger.error("Файл Data.ini не найден");
+        } catch (IOException e) {
+            Logger.error("Файл Data.ini не найден");
             e.printStackTrace();
         }
 
@@ -75,10 +70,9 @@ public class SearchTest {
             $(searchPage.loader).waitUntil(not(Condition.visible), 10000, 50);
         }
 
-
         double sum = 0.0;
-        int kol=0;
-        double currentSum=0;
+        int kol = 0;
+        double currentSum = 0;
         //до тех пор, пока кнопка перехода на следующую страницу таблицы кликабельная,
         //считаем количество и сумму лотов
         do {
@@ -95,35 +89,26 @@ public class SearchTest {
                     //переводим строку с ценой в числовой формат, откидываем нечисленные символы
                     //проверяем, в какой валюте указана цена. Переводим в рубли, если есть необходимость
                     //курс евро и доллара подтягивается из файла Data.ini
-                    if (trade.parent().find(searchPage.price).text().matches("(.*)EUR(.*)"))
-                    {
+                    if (trade.parent().find(searchPage.price).text().matches("(.*)EUR(.*)")) {
                         currentSum = Double.parseDouble(
                                 trade.parent().find(searchPage.price).text()
                                         .replace(" ", "")
                                         .replace(",", ".")
                                         .replace("EUR", "")
-                                        );
-                        currentSum=currentSum*eur;
+                        );
+                        currentSum = currentSum * eur;
                         Logger.info("Цена #" + trade.text() + " была указана в EUR. Пересчитана в руб.");
 
-                    }
-                    else
-
-                    if (trade.parent().find(searchPage.price).text().matches("(.*)USD(.*)"))
-                    {
+                    } else if (trade.parent().find(searchPage.price).text().matches("(.*)USD(.*)")) {
                         currentSum = Double.parseDouble(
                                 trade.parent().find(searchPage.price).text()
                                         .replace(" ", "")
                                         .replace(",", ".")
                                         .replace("USD", "")
                         );
-                        currentSum=currentSum*usd;
+                        currentSum = currentSum * usd;
                         Logger.info("Цена #" + trade.text() + " была указана в USD. Пересчитаны в руб.");
-                    }
-                    else
-
-                    if (trade.parent().find(searchPage.price).text().matches("(.*)руб(.*)"))
-                    {
+                    } else if (trade.parent().find(searchPage.price).text().matches("(.*)руб(.*)")) {
                         currentSum = Double.parseDouble(
                                 trade.parent().find(searchPage.price).text()
                                         .replace(" руб.", "")
@@ -133,9 +118,9 @@ public class SearchTest {
                     }
 
                     //переводим числа из экспоненциального формата в "читабельный"
-                    BigDecimal bd = new BigDecimal(currentSum).setScale(2,ROUND_DOWN);
+                    BigDecimal bd = new BigDecimal(currentSum).setScale(2, ROUND_DOWN);
 
-                   // System.out.println("Trade #" + trade.text() + " Sum:" + bd);
+                    // System.out.println("Trade #" + trade.text() + " Sum:" + bd);
                     sum += currentSum;
                     kol++;
                     Logger.info(kol + ". Цена #" + trade.text() + " = " + bd + " руб.");
@@ -146,30 +131,26 @@ public class SearchTest {
         } while (!$(searchPage.nextPage).has(Condition.cssClass("ui-state-disabled")));
         Logger.info("Достигли конца таблицы");
         //переводим общую сумму закупок из экспоненциальной в "читабельную" форму
-        BigDecimal allSum = new BigDecimal(sum).setScale(2,ROUND_DOWN);
+        BigDecimal allSum = new BigDecimal(sum).setScale(2, ROUND_DOWN);
 
-        String text="Количество лотов: " + kol + "\nСумма лотов: " + allSum + " руб.";
+        String text = "Количество лотов: " + kol + "\nСумма лотов: " + allSum + " руб.";
         Logger.info("Количество лотов: " + kol + "\nСумма лотов: " + allSum + " руб.");
         //создаем новый экземпляр файла по заданному пути
         File file = new File("src/test/java/rts/files/SumKol.txt");
         try {
             //проверяем, что файл существует. Если нет, то создаем его
-            if(!file.exists()){
+            if (!file.exists()) {
                 file.createNewFile();
                 Logger.info("Файл успешно создан");
-
             }
 
-            PrintWriter out = new PrintWriter(file);
-
-            try {
+            try (PrintWriter out = new PrintWriter(file)) {
                 //Записываем текст в файл
                 out.print(text);
-            } finally {
-                //закрываем файл
-                out.close();
             }
-        } catch(IOException e) { Logger.error("Ошибка при записи результатов в файл");
+            //закрываем файл
+        } catch (IOException e) {
+            Logger.error("Ошибка при записи результатов в файл");
             throw new RuntimeException(e);
         }
 
