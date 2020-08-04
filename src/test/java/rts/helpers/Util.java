@@ -1,7 +1,8 @@
-package helpers;
+package rts.helpers;
 
 import org.junit.Before;
 import org.tinylog.Logger;
+
 
 import java.io.File;
 import java.io.FileNotFoundException;
